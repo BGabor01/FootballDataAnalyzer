@@ -15,10 +15,12 @@ class FootballDataApiWrapper:
     @retry(max_retries=3, delay=5)
     def fecth_matches(
         self,
-        date_from: Optional[datetime] = datetime.today(),
-        date_to: Optional[datetime] = datetime.today() + timedelta(days=1),
+        date_from: Optional[datetime] = datetime.today() + timedelta(days=-2),
+        date_to: Optional[datetime] = datetime.today(),
     ):
         """Fetches matches from the API within the specified date range"""
+        # Some match results and details (e.g., status, scores) may be updated in the API the next day,
+        # so we include data from two days ago to ensure we capture any delayed updates.
 
         response = requests.get(
             f"{self._base_url}/matches",
