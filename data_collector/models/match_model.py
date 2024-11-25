@@ -1,4 +1,16 @@
-from mongoengine import Document, EmbeddedDocument, fields, ObjectIdField
+import os
+
+from mongoengine import Document, EmbeddedDocument, fields, connect
+from pymongo import UpdateOne
+
+connect(
+    db=os.environ.get("MONGO_INITDB_DATABASE"),
+    username=os.environ.get("MONGO_INITDB_ROOT_USERNAME"),
+    password=os.environ.get("MONGO_INITDB_ROOT_PASSWORD"),
+    host="mongo_db",
+    port=27017,
+    authentication_source="admin",
+)
 
 
 class Area(EmbeddedDocument):
@@ -69,3 +81,23 @@ class Match(Document):
     referees = fields.ListField(fields.EmbeddedDocumentField(Referee), default=[])
 
     meta = {"collection": "matches"}
+
+    @classmethod
+    def bulk_upsert(cls, matches):
+        bulk_operations = [
+            UpdateOne(
+                {"id": match["id"]},
+                {"$set": match},
+                upsert=True,
+            )
+            for match in matches
+        ]
+
+        if bulk_operations:
+            results = cls._get_collection().bulk_write(bulk_operations)
+            return {
+                "Upserted": results.bulk_api_result.get("nUpserted", 0),
+                "Matched": results.bulk_api_result.get("nMatched", 0),
+                "Modified": results.bulk_api_result.get("nModified", 0),
+            }
+        return None
