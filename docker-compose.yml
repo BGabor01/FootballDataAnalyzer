@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  data_collector:
+    build:
+      context: ./data_collector
+      dockerfile: Dockerfile
+    container_name: data_collector
+    depends_on:
+      - mongo_db
+    env_file:
+      - ./data_collector/.env 
+    command: python collect.py
+
+  mongo_db:
+    image: mongo:6 
+    container_name: mongo_db
+    ports:
+      - "27017:27017"  
+    volumes:
+      - mongo_data:/data/db
+    env_file:
+      - .env
+
+volumes:
+  mongo_data:
