@@ -1,7 +1,10 @@
 import time
 import functools
+import logging
 
 from helpers.exceptions import MaxRetryError
+
+logger = logging.getLogger(__name__)
 
 
 def retry(max_retries: int = 3, delay: int = 2, exceptions: tuple = (Exception,)):
@@ -14,7 +17,7 @@ def retry(max_retries: int = 3, delay: int = 2, exceptions: tuple = (Exception,)
                     return func(*args, **kwargs)
                 except exceptions as e:
                     attempt += 1
-                    print(e)  # TODO logging
+                    logger.warning(e)
                     time.sleep(delay)
             raise MaxRetryError(
                 f"Function {func.__name__} failed after {max_retries} retries"
